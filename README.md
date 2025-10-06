@@ -29,10 +29,16 @@ Uni-Dock is a high-performance molecular docking program that leverages the powe
 
 
 ### Installation
+```bash
+git clone https://github.com/vedasoham/GUI_unidock.git
+cd GUI_unidock
 python setup.py
+```
 
 ## Usage
+```bash
 python app.py
+```
 
 ## License
 
