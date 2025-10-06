@@ -26,33 +26,10 @@ Uni-Dock is a high-performance molecular docking program that leverages the powe
 * (List any other dependencies your GUI has, for example, PyQt, Tkinter, etc.)
 
 ### Installation
-
-1.  Clone the repository:
-    ```bash
-    git clone [https://github.com/](https://github.com/)[Your-GitHub-Username]/[Your-Repository-Name].git
-    ```
-2.  Navigate to the project directory:
-    ```bash
-    cd [Your-Repository-Name]
-    ```
-3.  Install the required Python packages:
-    ```bash
-    pip install -r requirements.txt
-    ```
+python setup.py
 
 ## Usage
-
-1.  Launch the application by running the main Python script:
-    ```bash
-    python main.py
-    ```
-2.  (Add more specific instructions on how to use your GUI. You can include screenshots to make it clearer.)
-
-    *Example:*
-    * **Step 1:** Click on "Load Receptor" to select your protein PDB file.
-    * **Step 2:** Click on "Load Ligand" to select your ligand MOL2/SDF file.
-    * **Step 3:** Adjust the search space coordinates in the "Docking Configuration" panel.
-    * **Step 4:** Click "Run Docking" to start the simulation.
+python app.py
 
 ## Contributing
 
