@@ -49,4 +49,3 @@ This project is licensed under the MIT License - see the `LICENSE` file for deta
 
 * The **Uni-Dock team** for developing the core docking program.
 * **Atharva** for their collaboration on this GUI.
-* (Any other acknowledgements you want to add)
