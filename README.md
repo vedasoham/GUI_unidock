@@ -2,8 +2,9 @@
 
 A user-friendly graphical user interface for Uni-Dock, a GPU-accelerated molecular docking program. This project is a collaboration between [Your Name/GitHub Username] and Atharva.
 
-![image](https://github.com/dptech-corp/Uni-Dock/blob/main/unidock.png)
-*Image from the official Uni-Dock repository.*
+## GUI Visual
+![Screenshot of the GUI-Unidock Upload PDB setp](./assets/screenshot1.png)
+
 
 ## About Uni-Dock
 
