@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uni-Dock GUI</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/3dmol@2.4.2/build/3Dmol-min.js"></script>
+</head>
+
+<body>
+    <!-- Project Creation Modal -->
+    <div class="modal fade" id="projectModal" tabindex="-1" aria-labelledby="projectModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form id="project-form">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="projectModalLabel">Create New Project</h5>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="projectName" class="form-label">Enter Project Name:</label>
+                            <input type="text" class="form-control" id="projectName" name="project_name" required>
+                        </div>
+                        <div id="project-response" class="text-danger small mt-1"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Create Project</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <h5></h5>
+        <a class="btn btn-outline-primary sidebar-btn active" id="upload-receptor">Upload Receptor & Set Grid</a>
+        <a class="btn sidebar-btn disabled" id="upload-ligand">Upload Ligand</a>
+        <a class="btn sidebar-btn disabled" id="param">Set Parameters</a>
+        <a class="btn sidebar-btn disabled" id="run">Run</a>
+        <!-- <a class="btn sidebar-btn disabled" id="analyze-results">Analyze Results</a> -->
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container-fluid">
+            <div class="container" style="max-width: 100% !important">
+                <!-- Receptor Upload Section -->
+                <div id="receptor-upload" style="display: block;">
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h3>Upload Protein PDB File</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="rec-upload-form" enctype="multipart/form-data">
+                                <div class="form-group">
+                                    <div class="custom-file">
+                                        <input type="file" class="custom-file-input" id="rec-file" name="file" accept=".pdb" />
+                                        <label class="custom-file-label" for="pdb-file">Choose file (.pdb)</label>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary" id="recUploadBtn" disabled>Upload</button>
+                                <p id="rec-upload-response" class="mt-3 text-success"></p>
+                            </form>
+                            <form id="grid-form" style="display: none;">
+                                <button type="submit" class="btn btn-success">Generate Grid</button>
+                                <p id="grid-response" class="mt-3 text-success"></p>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- Slider Section for XYZ and Size -->
+                    <div class="row mt-4">
+                        <!-- Column 1: 3D Viewer -->
+                        <div class="col-md-8" style="max-width: 60%">
+                            <div id="viewer" style="width: 100%; height: 600px; position: relative;"></div>
+                        </div>
+
+                        <!-- Column 2: Sliders -->
+                        <div class="col-md-4">
+                            <div id="slider-container" class="card" style="display:none; margin-top: 0; width: 120%">
+                                <div class="card-header">
+                                    <h4>Adjust Grid</h4>
+                                </div>
+                                <div class="card-body" style="display: flex;">
+                                    <!-- Center X Slider -->
+                                    <div class="col-md-2" style="max-width: 50%">
+                                        <div class="card-body">
+                                            <div class="form-group">
+                                                <label class="slider-label" for="center-x-slider">Center X:</label>
+                                                <input type="range" step="1" class="form-control-range"
+                                                    id="center-x-slider" min="-100" max="100" step="1" value="0">
+                                                <p>X: <span id="center-x-value">0</span></p>
+                                            </div>
+                                            <!-- Center Y Slider -->
+                                            <div class="form-group">
+                                                <label class="slider-label" for="center-y-slider">Center Y:</label>
+                                                <input type="range" step="1" class="form-control-range"
+                                                    id="center-y-slider" min="-100" max="100" step="1" value="0">
+                                                <p>Y: <span id="center-y-value">0</span></p>
+                                            </div>
+                                            <!-- Center Z Slider -->
+                                            <div class="form-group">
+                                                <label class="slider-label" for="center-z-slider">Center Z:</label>
+                                                <input type="range" step="1" class="form-control-range"
+                                                    id="center-z-slider" min="-100" max="100" step="1" value="0">
+                                                <p>Z: <span id="center-z-value">0</span></p>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <!-- Size X Slider -->
+                                    <div class="col-md-2" style="max-width: 50%">
+                                        <div class="card-body">
+                                            <div class="form-group">
+                                                <label class="slider-label" for="size-x-slider">Size X:</label>
+                                                <input type="range" step="1" class="form-control-range"
+                                                    id="size-x-slider" min="1" max="100" step="1" value="50">
+                                                <p>Size X: <span id="size-x-value">50</span></p>
+                                            </div>
+                                            <!-- Size Y Slider -->
+                                            <div class="form-group">
+                                                <label class="slider-label" for="size-y-slider">Size Y:</label>
+                                                <input type="range" step="1" class="form-control-range"
+                                                    id="size-y-slider" min="1" max="100" step="1" value="50">
+                                                <p>Size Y: <span id="size-y-value">50</span></p>
+                                            </div>
+                                            <!-- Size Z Slider -->
+                                            <div class="form-group">
+                                                <label class="slider-label" for="size-z-slider">Size Z:</label>
+                                                <input type="range" step="1" class="form-control-range"
+                                                    id="size-z-slider" min="1" max="100" step="1" value="50">
+                                                <p>Size Z: <span id="size-z-value">50</span></p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <button id="download-grid-btn" onclick="showLigUpload()" class="btn btn-primary mt-3"
+                                    style="margin: 50px">Save
+                                    and
+                                    Proceed</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ligand Upload Section -->
+                <div id="ligand-upload" style="display: none;">
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h3>Upload Ligand PDB File</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="lig-upload-form" enctype="multipart/form-data">
+                                <div class="form-group">
+                                    <div class="custom-file">
+                                        <input type="file" class="custom-file-input" id="lig-file" name="files[]" multiple accept=".pdbqt">
+                                        <label class="custom-file-label" for="pdb-file">Choose file</label>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary" id="ligUploadBtn">Upload</button>
+                                <button onclick="paramSetShow()" class="btn btn-primary" id="paramSetBtn" style="display: none; float: right;">Next</button>
+                                <p id="lig-upload-response" class="mt-3 text-success"></p>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="param-card" style="display: none;">
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h3>Set Docking Parameters</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="param-upload-form" enctype="multipart/form-data">
+                                <div class="row">
+                                    <!-- Docking Search Mode -->
+                                    <div class="col-md-4">
+                                        <div class="input-group mb-3" style="max-width: 300px;">
+                                            <span class="input-group-text">Search Mode:</span>
+                                            <select class="form-select form-control text-center" id="searchMode"
+                                                name="search_mode">
+                                                <option value="Fast" selected>Fast</option>
+                                                <option value="Balanced">Balanced</option>
+                                                <option value="Detail">Detail</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="on"
+                                                id="defaultCheck1" name="defaultCheck1">
+                                            <label class="form-check-label" for="defaultCheck1">
+                                                Enable Batch GPU Processing
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Docking Scoring Method -->
+                                    <div class="col-md-4">
+                                        <div class="input-group mb-3" style="max-width: 300px;">
+                                            <span class="input-group-text">Scoring Method:</span>
+                                            <select class="form-select form-control text-center" id="scoringMethod"
+                                                name="scoring_method">
+                                                <option value="vina" selected>Vina</option>
+                                                <option value="adt">ADT</option>
+                                                <option value="vinardo">Vinardo</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <!-- Number of Modes -->
+                                    <div class="col-md-4">
+                                        <div class="input-group mb-3" style="max-width: 300px;">
+                                            <span class="input-group-text">No. of modes:</span>
+                                            <input type="number" class="form-control text-center" id="modesInput"
+                                                name="num_modes" value="5" min="1">
+                                        </div>
+                                    </div>
+                                </div>
+                                <br>
+                                <button type="submit" class="btn btn-primary">Save Parameters</button>
+                                <button type="button" onclick="runDockActive()" class="btn btn-success" id="run-docking-btn" style="display: none; margin-left: 10px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-play-fill" viewBox="0 0 16 16">
+                                        <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
+                                    </svg>
+                                    Run Docking
+                                </button>
+                                <p id="param-upload-response" class="mt-3 text-success"></p>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+                <div id="run-section" style="display: none;">
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h3>Uni-Dock Run Progress</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="run-header" class="d-flex align-items-center mb-3">
+                                <div id="run-loader" class="spinner-border text-primary spinner-border-sm" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                                <h5 id="run-status-text" class="mb-0 ml-3">Running...</h5>
+                            </div>
+
+                            <div id="run-final-status"></div>
+                            <br>
+                            <h6 class="text-left"><b>Live Log Output:</b></h6><br>
+                            <pre id="log-output" class="text-left bg-light p-2 rounded" style="min-height: 200px; max-height: 400px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word;">Waiting for process to start...</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="{{ url_for('static', filename='js/viewer.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/grid.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/slider.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/uploads.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/action.js') }}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = new bootstrap.Modal(document.getElementById('projectModal'), {
+                backdrop: 'static',
+                keyboard: false
+            });
+            modal.show();
+
+            document.getElementById('project-form').addEventListener('submit', function (e) {
+                e.preventDefault();
+                const name = document.getElementById('projectName').value.trim();
+
+                fetch('/create-project', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ project_name: name })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.message) {
+                            modal.hide();
+                            // alert(data.message);
+                            // optionally store project name in localStorage
+                            // localStorage.setItem('project_name', name);
+                        } else {
+                            document.getElementById('project-response').innerText = data.error || 'Something went wrong.';
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        document.getElementById('project-response').innerText = 'Server error.';
+                    });
+            });
+        });
+
+        // Update the label of the custom file input when a file is selected
+$('#rec-file').on('change', function () {
+    var fileName = $(this).val().split('\\').pop();
+    $(this).next('.custom-file-label').html(fileName);
+    document.getElementById('recUploadBtn').removeAttribute('disabled');
+});
+
+// Handle the file upload
+document.getElementById('rec-upload-form').onsubmit = async (event) => {
+    event.preventDefault();
+
+    const fileInput = document.getElementById('rec-file');
+    const file = fileInput.files[0];
+
+    if (!file) {
+        document.getElementById('rec-upload-response').textContent = 'Please select a file.';
+        document.getElementById('rec-upload-response').classList.add('text-danger');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const response = await fetch('/rec_upload', {
+            method: 'POST',
+            body: formData,
+        });
+
+        const result = await response.json();
+        const btn = document.getElementById('recUploadBtn');
+
+        if (response.ok) {
+            document.getElementById('rec-upload-response').textContent = result.message || "File uploaded successfully!";
+            document.getElementById('rec-upload-response').classList.remove('text-danger');
+            document.getElementById('rec-upload-response').classList.add('text-success');
+            window.uploadedFilePath = result.filepath; // Save the file path
+            btn.disabled = true;
+            document.getElementById('grid-form').style.display = 'block';
+
+            // Fetch the PDB file content from the server and load it into the viewer
+            loadProteinStructure(result.filepath);
+        } else {
+            document.getElementById('rec-upload-response').textContent = result.error || "Error occurred during upload!";
+            document.getElementById('rec-upload-response').classList.remove('text-success');
+            document.getElementById('rec-upload-response').classList.add('text-danger');
+        }
+    } catch (error) {
+        console.error("Error during file upload:", error);
+        document.getElementById('rec-upload-response').textContent = "An error occurred during file upload.";
+        document.getElementById('rec-upload-response').classList.add('text-danger');
+    }
+};
+
+// Update the label of the custom file input when a file is selected
+$('#lig-file').on('change', function () {
+    const files = Array.from(this.files).map(file => file.name).join(', ');
+    $(this).next('.custom-file-label').html(files);
+});
+
+document.getElementById('lig-upload-form').onsubmit = async (event) => {
+    event.preventDefault();
+
+    const fileInput = document.getElementById('lig-file');
+    const files = fileInput.files;
+
+    if (files.length === 0) {
+        document.getElementById('lig-upload-response').textContent = 'Please select at least one file.';
+        document.getElementById('lig-upload-response').classList.add('text-danger');
+        return;
+    }
+
+    // Prepare the FormData to send multiple files
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+        formData.append('files[]', files[i]);
+    }
+
+    try {
+        const response = await fetch('/lig_upload', {
+            method: 'POST',
+            body: formData,
+        });
+
+        const result = await response.json();
+        const btn = document.getElementById('ligUploadBtn');
+
+        if (response.ok) {
+            document.getElementById('lig-upload-response').textContent = result.message || "Files uploaded successfully!";
+            document.getElementById('lig-upload-response').classList.remove('text-danger');
+            document.getElementById('lig-upload-response').classList.add('text-success');
+            document.getElementById('paramSetBtn').style.display = "block"
+            btn.disabled = true;
+        } else {
+            document.getElementById('lig-upload-response').textContent = result.error || "Error occurred during upload.";
+            document.getElementById('lig-upload-response').classList.remove('text-success');
+            document.getElementById('lig-upload-response').classList.add('text-danger');
+        }
+    } catch (error) {
+        console.error("Error during file upload:", error);
+        document.getElementById('lig-upload-response').textContent = "An error occurred during file upload.";
+        document.getElementById('lig-upload-response').classList.add('text-danger');
+    }
+};
+
+
+
+// UPDATED: Parameter form submission logic
+        document.getElementById('param-upload-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            let formData = new FormData(this);
+            if (!document.getElementById('defaultCheck1').checked) {
+                formData.append('defaultCheck1', 'off');
+            }
+
+            fetch('/upload-params', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const responseEl = document.getElementById('param-upload-response');
+                if (data.message) {
+                    responseEl.innerText = data.message;
+                    responseEl.classList.add('text-success');
+                    responseEl.classList.remove('text-danger');
+                    document.getElementById('run-docking-btn').style.display = 'inline-block';
+                } else {
+                    responseEl.innerText = data.error || 'An error occurred.';
+                    responseEl.classList.add('text-danger');
+                    responseEl.classList.remove('text-success');
+                }
+            })
+            .catch(error => {
+                console.error('Fetch Error:', error);
+                document.getElementById('param-upload-response').innerText = 'Fetch Error: ' + error.message;
+                document.getElementById('param-upload-response').classList.add('text-danger');
+            });
+        });
+
+// UPDATED: Run Docking button event listener
+        // (in index.html, inside the last <script> tag)
+
+// (in index.html, inside the last <script> tag)
+
+document.getElementById('run-docking-btn').addEventListener('click', function() {
+    // --- UI Elements ---
+    const runSection = document.getElementById('run-section');
+    const paramCard = document.getElementById('param-card');
+    const runLoader = document.getElementById('run-loader');
+    const runStatusText = document.getElementById('run-status-text');
+    const logOutput = document.getElementById('log-output');
+
+    // --- NEW: Get sidebar buttons ---
+    const receptorSidebarBtn = document.getElementById('upload-receptor');
+    const ligandSidebarBtn = document.getElementById('upload-ligand');
+    const paramSidebarBtn = document.getElementById('param');
+    const runSidebarBtn = document.getElementById('run');
+    
+    // --- UI Setup for Running State ---
+    paramCard.style.display = 'none';
+    runSection.style.display = 'block';
+    
+    // --- NEW: Update sidebar button states ---
+    receptorSidebarBtn.classList.add('disabled');
+    ligandSidebarBtn.classList.add('disabled');
+    paramSidebarBtn.classList.remove('active');
+    paramSidebarBtn.classList.add('disabled');
+    runSidebarBtn.classList.add('active');
+    
+    runLoader.style.display = 'inline-block'; // Show spinner
+    runStatusText.textContent = 'Running...';
+    runStatusText.className = 'mb-0 ml-3 text-primary'; // Reset color
+    logOutput.textContent = 'Initializing docking process...';
+    this.disabled = true;
+
+    let pollingInterval;
+
+    const pollStatus = () => {
+        fetch('/run-status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.log) {
+                    logOutput.textContent = data.log;
+                    logOutput.scrollTop = logOutput.scrollHeight;
+                }
+
+                if (data.status === 'running') {
+                    return; 
+                }
+
+                clearInterval(pollingInterval);
+                runLoader.style.display = 'none';
+
+                if (data.status === 'completed') {
+                    // Hide the "Running..." header
+                    document.getElementById('run-header').style.display = 'none';
+                    document.getElementById('run-status-text').style.display = 'none';
+
+                    // Get the NEW container for the final message
+                    const finalStatusContainer = document.getElementById('run-final-status');
+                    
+                    // Create the success message HTML (with the emoji added back)
+                    const successMessageHTML = `
+                        <div class="alert alert-success" role="alert">
+                            <h4 class="alert-heading">UniDock Run Completed!</h4>
+                            <p>Your docking simulation has finished successfully.</p>
+                            <hr>
+                            <p class="mb-0">
+                                You can find all the output files, including docked poses and scores, in the following directory on your computer:
+                            </p>
+                            <br>
+                            <code style="font-size: 0.9rem; padding: 5px; background-color: #ecfdf0; color: #084899; border-radius: 4px;">${data.results_path}</code>
+                        </div>
+                    `;
+                    // Put the success message into the new container
+                    finalStatusContainer.innerHTML = successMessageHTML;
+
+                } else {  
+                    // Hide the "Running..." header
+                    document.getElementById('run-header').style.display = 'none';
+                    document.getElementById('run-status-text').style.display = 'none';
+
+                    // Get the NEW container for the final message
+                    const finalStatusContainer = document.getElementById('run-final-status');
+
+                    // Create the error message HTML
+                    const errorMessageHTML = `
+                        <div class="alert alert-danger" role="alert">
+                            <h4 class="alert-heading">Run Failed!</h4>
+                            <p>Your docking simulation encountered an error. Please check the logs for more details.</p>
+                            <hr>
+                        </div>
+                    `;
+                    // Put the error message into the new container
+                    finalStatusContainer.innerHTML = errorMessageHTML;
+                }
+            })
+            .catch(err => {
+                // (Error handling for polling, also re-enables sidebar)
+                console.error("Polling error:", err);
+                clearInterval(pollingInterval);
+                runLoader.style.display = 'none';
+                runStatusText.textContent = 'Polling Error';
+                runStatusText.className = 'mb-0 ml-3 text-danger';
+                logOutput.textContent += '\n\nCould not get run status from the server.';
+                
+                // --- NEW: Re-enable sidebar on error ---
+                receptorSidebarBtn.classList.remove('disabled');
+                ligandSidebarBtn.classList.remove('disabled');
+                paramSidebarBtn.classList.remove('disabled');
+                runSidebarBtn.classList.remove('active');
+                paramSidebarBtn.classList.add('active');
+            });
+    };
+
+    // --- Start the docking process ---
+    fetch('/run-docking', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                pollingInterval = setInterval(pollStatus, 3000);
+            } else {
+                // (Error handling for starting the run, also re-enables sidebar)
+                runLoader.style.display = 'none';
+                runStatusText.textContent = 'Failed to Start!';
+                runStatusText.className = 'mb-0 ml-3 text-danger';
+                logOutput.textContent = data.error;
+                this.disabled = false;
+                
+                // --- NEW: Re-enable sidebar on error ---
+                receptorSidebarBtn.classList.remove('disabled');
+                ligandSidebarBtn.classList.remove('disabled');
+                paramSidebarBtn.classList.remove('disabled');
+                runSidebarBtn.classList.remove('active');
+                paramSidebarBtn.classList.add('active');
+            }
+        })
+        .catch(error => {
+            // (Network error handling, also re-enables sidebar)
+            console.error('Run Docking Start Error:', error);
+            runLoader.style.display = 'none';
+            runStatusText.textContent = 'Network Error!';
+            runStatusText.className = 'mb-0 ml-3 text-danger';
+            logOutput.textContent = 'Could not start the docking job due to a network error.';
+            this.disabled = false;
+
+            // --- NEW: Re-enable sidebar on error ---
+            receptorSidebarBtn.classList.remove('disabled');
+            ligandSidebarBtn.classList.remove('disabled');
+            paramSidebarBtn.classList.remove('disabled');
+            runSidebarBtn.classList.remove('active');
+            paramSidebarBtn.classList.add('active');
+        });
+});
+    </script>
+</body>
+
+</html>
