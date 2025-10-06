@@ -21,9 +21,9 @@ Uni-Dock is a high-performance molecular docking program that leverages the powe
 
 ### Prerequisites
 
-* Python 3.x
+* Python 3.10 or above
 * Uni-Dock: Follow the official [Uni-Dock installation guide](https://github.com/dptech-corp/Uni-Dock) to install it on your system.
-* (List any other dependencies your GUI has, for example, PyQt, Tkinter, etc.)
+
 
 ### Installation
 python setup.py
